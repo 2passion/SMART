@@ -1,7 +1,6 @@
 /* SMART v1.0 — 오늘 할 일 */
 
 const Todo = {
-  // 카테고리 정의
   CATEGORIES: [
     { label: '수업 일정',  emoji: '🏫' },
     { label: '시험/테스트', emoji: '📝' },
@@ -10,7 +9,6 @@ const Todo = {
     { label: '행정 업무',  emoji: '🗂️' }
   ],
 
-  // 우선순위 정의
   PRIORITIES: [
     { label: '최우선', color: '#EF4444' },
     { label: '높음',   color: '#F59E0B' },
@@ -18,7 +16,6 @@ const Todo = {
     { label: '낮음',   color: '#6B7280' }
   ],
 
-  // 현재 선택값
   selectedCategory: '행정 업무',
   selectedPriority: '보통',
 
@@ -27,7 +24,6 @@ const Todo = {
     if (!container) return;
 
     const todos = DB.getTodos();
-    // 미완료 우선, 우선순위 순 정렬
     const priorityOrder = ['최우선', '높음', '보통', '낮음'];
     const sorted = [...todos].sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -41,7 +37,6 @@ const Todo = {
 
     container.innerHTML = sorted.map(todo => this.renderItem(todo)).join('');
 
-    // 이벤트 바인딩
     container.querySelectorAll('.todo-check').forEach(cb => {
       cb.addEventListener('change', (e) => {
         DB.toggleTodo(e.target.dataset.id);
@@ -112,7 +107,6 @@ const Todo = {
   },
 
   bindFormEvents() {
-    // 카테고리 선택
     document.querySelectorAll('.cat-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.selectedCategory = btn.dataset.cat;
@@ -121,7 +115,6 @@ const Todo = {
       });
     });
 
-    // 우선순위 선택
     document.querySelectorAll('.pri-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.selectedPriority = btn.dataset.pri;
@@ -140,7 +133,6 @@ const Todo = {
       });
     });
 
-    // 추가 버튼
     document.getElementById('todo-submit').addEventListener('click', () => {
       const input = document.getElementById('todo-input');
       const text = input.value.trim();
@@ -151,7 +143,6 @@ const Todo = {
       App.updateDashboard();
     });
 
-    // 엔터키
     document.getElementById('todo-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') document.getElementById('todo-submit').click();
     });

@@ -1,7 +1,7 @@
 {
   "name": "SMART",
   "short_name": "SMART",
-  "description": "Smart Multi-AI Resource Tracker — 학원 운영 AI 통합 운영체계",
+  "description": "Smart Multi-AI Resource Tracker — 학원 운영 AI 통합 운영체계 (v1.1 Drive 동기화)",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0F172A",

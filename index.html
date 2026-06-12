@@ -12,6 +12,8 @@
   <link rel="icon" href="./icons/icon-192.svg">
   <link rel="apple-touch-icon" href="./icons/icon-192.svg">
   <link rel="stylesheet" href="./css/style.css">
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
   <div id="app">
@@ -19,7 +21,10 @@
     <!-- ── 홈 (대시보드) ── -->
     <div class="page active" id="page-home">
       <div class="page-header">
-        <h2>SMART</h2>
+        <div class="header-row">
+          <h2>SMART</h2>
+          <div id="drive-status"></div>
+        </div>
         <div id="dash-date"></div>
       </div>
 
@@ -60,11 +65,12 @@
 
   </div><!-- /#app -->
 
-  <!-- JS 로드 순서: db → 기능모듈 → 앱 -->
+  <!-- JS 로드 순서: db → 기능모듈 → drive → 앱 -->
   <script src="./js/db.js"></script>
   <script src="./js/todo.js"></script>
   <script src="./js/calendar.js"></script>
   <script src="./js/kanban.js"></script>
+  <script src="./js/drive.js"></script>
   <script src="./js/app.js"></script>
 </body>
 </html>

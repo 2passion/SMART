@@ -26,35 +26,31 @@ const Calendar = {
     const wrap = document.getElementById('calendar-wrap');
     if (!wrap) return;
 
-    const year = this.currentYear;
+    const year  = this.currentYear;
     const month = this.currentMonth;
-    const today = DB.today();
+    const today  = DB.today();
     const events = DB.getEvents();
 
-    // 이 달의 날짜 계산
-    const firstDay = new Date(year, month, 1).getDay();
+    const firstDay    = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    const monthNames  = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
-    // 날짜별 이벤트 맵
     const eventMap = {};
     events.forEach(e => {
       if (!eventMap[e.date]) eventMap[e.date] = [];
       eventMap[e.date].push(e);
     });
 
-    // 요일 헤더
-    const weekDays = ['일','월','화','수','목','금','토'];
+    const weekDays  = ['일','월','화','수','목','금','토'];
     const dayHeaders = weekDays.map((d, i) =>
       `<div class="cal-day-header ${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('');
 
-    // 날짜 칸 생성
     let cells = '';
     for (let i = 0; i < firstDay; i++) cells += `<div class="cal-cell empty"></div>`;
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isToday = dateStr === today;
+      const isToday  = dateStr === today;
       const dayEvents = eventMap[dateStr] || [];
       const dots = dayEvents.slice(0, 3).map(e => {
         const cat = this.CATEGORIES.find(c => c.label === e.category);
@@ -81,7 +77,6 @@ const Calendar = {
         ${cells}
       </div>`;
 
-    // 이전/다음 달
     document.getElementById('cal-prev').addEventListener('click', () => {
       if (this.currentMonth === 0) { this.currentYear--; this.currentMonth = 11; }
       else this.currentMonth--;
@@ -95,7 +90,6 @@ const Calendar = {
       this.renderEventList(null);
     });
 
-    // 날짜 클릭
     wrap.querySelectorAll('.cal-cell:not(.empty)').forEach(cell => {
       cell.addEventListener('click', () => {
         wrap.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('selected'));
@@ -104,7 +98,6 @@ const Calendar = {
       });
     });
 
-    // 오늘 날짜 이벤트 기본 표시
     this.renderEventList(today);
   },
 
@@ -112,10 +105,7 @@ const Calendar = {
     const wrap = document.getElementById('event-list-wrap');
     if (!wrap) return;
 
-    if (!date) {
-      wrap.innerHTML = '';
-      return;
-    }
+    if (!date) { wrap.innerHTML = ''; return; }
 
     const events = DB.getEventsByDate(date);
     const [y, m, d] = date.split('-');
@@ -145,7 +135,6 @@ const Calendar = {
         </div>
       </div>`;
 
-    // 이벤트 삭제
     wrap.querySelectorAll('.event-delete').forEach(btn => {
       btn.addEventListener('click', () => {
         DB.deleteEvent(btn.dataset.id);
@@ -155,7 +144,6 @@ const Calendar = {
       });
     });
 
-    // 추가 폼 토글
     document.getElementById('btn-add-event').addEventListener('click', () => {
       document.getElementById('event-add-form').classList.remove('hidden');
       document.getElementById('btn-add-event').classList.add('hidden');
@@ -169,7 +157,7 @@ const Calendar = {
       const title = document.getElementById('event-title').value.trim();
       if (!title) { document.getElementById('event-title').focus(); return; }
       const time = document.getElementById('event-time').value;
-      const cat = document.getElementById('event-cat').value;
+      const cat  = document.getElementById('event-cat').value;
       const memo = document.getElementById('event-memo').value.trim();
       DB.addEvent(title, date, time, cat, memo);
       this.renderCalendar();
@@ -179,7 +167,7 @@ const Calendar = {
   },
 
   renderEventItem(e) {
-    const cat = this.CATEGORIES.find(c => c.label === e.category);
+    const cat   = this.CATEGORIES.find(c => c.label === e.category);
     const color = cat ? cat.color : '#3B82F6';
     return `
       <div class="event-item" style="border-left-color:${color}">

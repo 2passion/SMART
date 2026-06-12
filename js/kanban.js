@@ -23,7 +23,6 @@ const Kanban = {
     { label: '낮음',   color: '#6B7280' }
   ],
 
-  // 추가 폼이 열린 컬럼
   openFormColumn: null,
   selectedCategory: '행정 업무',
   selectedPriority: '보통',
@@ -65,7 +64,7 @@ const Kanban = {
   renderCard(card) {
     const pri = this.PRIORITIES.find(p => p.label === card.priority) || this.PRIORITIES[2];
     const colIndex = this.COLUMNS.findIndex(c => c.id === card.status);
-    const canLeft = colIndex > 0;
+    const canLeft  = colIndex > 0;
     const canRight = colIndex < this.COLUMNS.length - 1;
 
     return `
@@ -78,7 +77,7 @@ const Kanban = {
         <div class="card-bottom">
           <span class="tag tag-pri" style="color:${pri.color};border-color:${pri.color}">${card.priority}</span>
           <div class="card-move">
-            ${canLeft ? `<button class="card-move-btn" data-id="${card.id}" data-dir="left">◀</button>` : '<span></span>'}
+            ${canLeft  ? `<button class="card-move-btn" data-id="${card.id}" data-dir="left">◀</button>`  : '<span></span>'}
             ${canRight ? `<button class="card-move-btn" data-id="${card.id}" data-dir="right">▶</button>` : '<span></span>'}
           </div>
         </div>
@@ -107,7 +106,6 @@ const Kanban = {
   },
 
   bindEvents() {
-    // 카드 추가 버튼
     document.querySelectorAll('.btn-kanban-add').forEach(btn => {
       btn.addEventListener('click', () => {
         this.openFormColumn = btn.dataset.col;
@@ -117,7 +115,6 @@ const Kanban = {
       });
     });
 
-    // 취소
     document.querySelectorAll('.kanban-cancel').forEach(btn => {
       btn.addEventListener('click', () => {
         this.openFormColumn = null;
@@ -125,15 +122,14 @@ const Kanban = {
       });
     });
 
-    // 추가 제출
     document.querySelectorAll('.kanban-submit').forEach(btn => {
       btn.addEventListener('click', () => {
-        const form = btn.closest('.kanban-add-form');
+        const form  = btn.closest('.kanban-add-form');
         const title = form.querySelector('.kanban-card-title').value.trim();
         if (!title) { form.querySelector('.kanban-card-title').focus(); return; }
         const desc = form.querySelector('.kanban-card-desc').value.trim();
-        const cat = form.querySelector('.kanban-card-cat').value;
-        const pri = form.querySelector('.kanban-card-pri').value;
+        const cat  = form.querySelector('.kanban-card-cat').value;
+        const pri  = form.querySelector('.kanban-card-pri').value;
         DB.addCard(title, desc, cat, pri, btn.dataset.col);
         this.openFormColumn = null;
         this.render();
@@ -141,7 +137,6 @@ const Kanban = {
       });
     });
 
-    // 카드 삭제
     document.querySelectorAll('.card-delete').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -151,7 +146,6 @@ const Kanban = {
       });
     });
 
-    // 카드 이동
     document.querySelectorAll('.card-move-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
