@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SMART">
+  <title>SMART</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="./icons/icon-192.svg">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── 홈 (대시보드) ── -->
+    <div class="page active" id="page-home">
+      <div class="page-header">
+        <h2>SMART</h2>
+        <div id="dash-date"></div>
+      </div>
+
+      <!-- 요약 카드 -->
+      <div class="dash-cards">
+        <div class="dash-card">
+          <div class="dash-card-label">오늘 할 일</div>
+          <div class="dash-card-value" id="dash-todo-count">0 / 0</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="dash-todo-bar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">프로젝트</div>
+          <div class="dash-card-value" id="dash-kanban-count">0개 진행중</div>
+        </div>
+      </div>
+
+      <!-- 오늘 일정 -->
+      <div class="dash-section-title">📅 오늘 일정</div>
+      <div id="dash-events"></div>
+    </div>
+
+    <!-- ── 오늘 할 일 ── -->
+    <div class="page" id="page-todo"></div>
+
+    <!-- ── 일정 ── -->
+    <div class="page" id="page-calendar"></div>
+
+    <!-- ── 프로젝트 (칸반) ── -->
+    <div class="page" id="page-kanban"></div>
+
+    <!-- ── 설정 ── -->
+    <div class="page" id="page-settings"></div>
+
+    <!-- ── 하단 네비게이션 ── -->
+    <nav id="bottom-nav"></nav>
+
+  </div><!-- /#app -->
+
+  <!-- JS 로드 순서: db → 기능모듈 → 앱 -->
+  <script src="./js/db.js"></script>
+  <script src="./js/todo.js"></script>
+  <script src="./js/calendar.js"></script>
+  <script src="./js/kanban.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
