@@ -1,4 +1,4 @@
-/* SMART v1.0 — 오늘 할 일 */
+/* SMART v1.1 — 오늘 할 일 */
 
 const Todo = {
   CATEGORIES: [

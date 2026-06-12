@@ -1,4 +1,4 @@
-/* SMART v1.0 — 칸반보드 */
+/* SMART v1.1 — 칸반보드 */
 
 const Kanban = {
   COLUMNS: [

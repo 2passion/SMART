@@ -1,4 +1,4 @@
-/* SMART v1.0 — 일정 캘린더 */
+/* SMART v1.1 — 일정 캘린더 */
 
 const Calendar = {
   currentYear: new Date().getFullYear(),

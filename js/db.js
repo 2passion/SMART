@@ -1,4 +1,4 @@
-/* SMART v1.1 — 데이터베이스 관리 (LocalStorage + Drive 동기화) */
+/* SMART v1.1.1 — 데이터베이스 관리 (LocalStorage + Drive 동기화) */
 
 const DB = {
   KEYS: {
@@ -123,14 +123,15 @@ const DB = {
   /* ── 전체 초기화 ── */
   clearAll() {
     Object.values(this.KEYS).forEach(key => localStorage.removeItem(key));
-    // Drive 동기화 예약하지 않음 (초기화는 로컬만)
+    // Drive에도 빈 데이터 동기화 (미동기화 시 다음 앱 시작 때 Drive 데이터가 복구됨)
+    Drive.scheduleSave();
   },
 
   /* ── 내보내기 ── */
   exportAll() {
     return {
       exportedAt: new Date().toISOString(),
-      version: 'v1.1',
+      version: 'v1.1.1',
       todos:  this.getTodos(),
       events: this.getEvents(),
       kanban: this.getKanban()

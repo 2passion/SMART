@@ -1,6 +1,6 @@
-/* SMART v1.1 — 서비스 워커 (오프라인 지원) */
+/* SMART v1.1.1 — 서비스 워커 (오프라인 지원) */
 
-const CACHE_NAME = 'smart-v1.1';
+const CACHE_NAME = 'smart-v1.1.1';
 
 const CACHE_FILES = [
   './',
@@ -33,11 +33,10 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 캐시 우선, 없으면 네트워크 (Google API는 항상 네트워크)
 self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('googleapis.com') ||
       event.request.url.includes('accounts.google.com')) {
-    return; // Google API 요청은 SW가 개입하지 않음
+    return;
   }
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))

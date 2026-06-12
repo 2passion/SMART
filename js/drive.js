@@ -1,4 +1,4 @@
-/* SMART v1.1 — Google Drive 동기화 */
+/* SMART v1.1.1 — Google Drive 동기화 */
 
 const Drive = {
   CLIENT_ID: '234579728452-o57vo4mlbu1khkhrc28ajnbo76bt6t68.apps.googleusercontent.com',
@@ -10,12 +10,12 @@ const Drive = {
   tokenExpiry: 0,
   fileId: null,
   debounceTimer: null,
+  _silentRefresh: false, // 토큰 갱신 중 loadFromDrive 생략 플래그
 
   get isSignedIn() {
     return !!this.accessToken && Date.now() < this.tokenExpiry;
   },
 
-  // GIS 라이브러리 로드 후 호출
   init() {
     if (typeof google === 'undefined' || !google.accounts) return;
 
@@ -25,7 +25,6 @@ const Drive = {
       callback: (resp) => this._onToken(resp)
     });
 
-    // 이전에 로그인한 경우 자동 재연결 시도
     if (localStorage.getItem('smart_drive_enabled') === 'true') {
       this.tokenClient.requestAccessToken({ prompt: '' });
     }
@@ -33,16 +32,15 @@ const Drive = {
     this._renderStatus();
   },
 
-  // 수동 로그인 (설정 페이지 버튼)
   signIn() {
     if (!this.tokenClient) {
       alert('Google 연동 라이브러리를 불러오는 중입니다.\n잠시 후 다시 시도하세요.');
       return;
     }
+    this._silentRefresh = false;
     this.tokenClient.requestAccessToken({ prompt: 'select_account' });
   },
 
-  // 로그아웃
   signOut() {
     if (this.accessToken) {
       google.accounts.oauth2.revoke(this.accessToken, () => {});
@@ -50,6 +48,7 @@ const Drive = {
     this.accessToken = null;
     this.tokenExpiry = 0;
     this.fileId = null;
+    this._silentRefresh = false;
     clearTimeout(this.debounceTimer);
     localStorage.removeItem('smart_drive_enabled');
     localStorage.removeItem('smart_drive_last_sync');
@@ -57,38 +56,40 @@ const Drive = {
     if (typeof App !== 'undefined' && App.currentPage === 'settings') App.initSettings();
   },
 
-  // OAuth 토큰 수신 콜백
   _onToken(resp) {
     if (resp.error) {
-      // 사용자가 명시적으로 거부한 경우만 플래그 제거
+      this._silentRefresh = false;
       if (resp.error === 'access_denied') {
         localStorage.removeItem('smart_drive_enabled');
       }
-      // interaction_required: 자동 재연결 실패 → 수동 로그인 필요 (플래그 유지)
       this._renderStatus();
       if (typeof App !== 'undefined' && App.currentPage === 'settings') App.initSettings();
       return;
     }
 
     this.accessToken = resp.access_token;
-    // expires_in(초) 기준에서 1분 여유
     this.tokenExpiry = Date.now() + (resp.expires_in - 60) * 1000;
     localStorage.setItem('smart_drive_enabled', 'true');
 
     this._renderStatus();
     if (typeof App !== 'undefined' && App.currentPage === 'settings') App.initSettings();
 
-    // 로그인 성공 시 Drive 데이터 불러오기
-    this.loadFromDrive();
+    if (this._silentRefresh) {
+      // 토큰 만료 후 갱신 → 로컬 데이터 보존, 대기 저장만 실행
+      this._silentRefresh = false;
+      this.scheduleSave();
+    } else {
+      // 최초 로그인 → Drive 데이터 불러오기
+      this.loadFromDrive();
+    }
   },
 
-  // Drive → LocalStorage (앱 시작 또는 로그인 시)
   async loadFromDrive() {
     if (!this.isSignedIn) return;
 
     try {
       const fileId = await this._findFile();
-      if (!fileId) return; // 첫 사용: 파일 없음, 최초 저장 시 생성
+      if (!fileId) return;
 
       this.fileId = fileId;
       const content = await this._downloadFile(fileId);
@@ -98,7 +99,6 @@ const Drive = {
       if (data.events !== undefined) localStorage.setItem('smart_events', JSON.stringify(data.events));
       if (data.kanban !== undefined) localStorage.setItem('smart_kanban', JSON.stringify(data.kanban));
 
-      // 현재 페이지 새로고침 (데이터 반영)
       if (typeof App !== 'undefined') App.navigate(App.currentPage);
       this._setSyncTime();
     } catch (e) {
@@ -106,20 +106,27 @@ const Drive = {
     }
   },
 
-  // 데이터 변경 시 호출 — 3초 디바운스
+  // 데이터 변경 시 호출 — 토큰 만료 시 자동 갱신 후 저장
   scheduleSave() {
-    if (!this.isSignedIn) return;
+    if (!this.isSignedIn) {
+      // 토큰 만료 + 이전 로그인 기록 있으면 조용히 재발급
+      if (localStorage.getItem('smart_drive_enabled') === 'true' && this.tokenClient) {
+        this._silentRefresh = true;
+        this.tokenClient.requestAccessToken({ prompt: '' });
+        // 재발급 성공 시 _onToken → scheduleSave() 재호출
+      }
+      return;
+    }
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => this._saveNow(), 3000);
   },
 
-  // LocalStorage → Drive 실제 저장
   async _saveNow() {
     if (!this.isSignedIn) return;
 
     const payload = JSON.stringify({
       savedAt: new Date().toISOString(),
-      version: 'v1.1',
+      version: 'v1.1.1',
       todos:  JSON.parse(localStorage.getItem('smart_todos')  || '[]'),
       events: JSON.parse(localStorage.getItem('smart_events') || '[]'),
       kanban: JSON.parse(localStorage.getItem('smart_kanban') || '[]')
@@ -129,7 +136,6 @@ const Drive = {
       if (this.fileId) {
         await this._updateFile(this.fileId, payload);
       } else {
-        // fileId 미확인 시 Drive에서 다시 검색
         const id = await this._findFile();
         if (id) {
           this.fileId = id;
@@ -144,7 +150,6 @@ const Drive = {
     }
   },
 
-  // appDataFolder에서 파일 검색
   async _findFile() {
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%22${this.FILE_NAME}%22&fields=files(id)`,
@@ -155,16 +160,15 @@ const Drive = {
     return data.files && data.files.length > 0 ? data.files[0].id : null;
   },
 
-  // 파일 내용 다운로드
   async _downloadFile(fileId) {
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
       { headers: { Authorization: `Bearer ${this.accessToken}` } }
     );
+    if (!res.ok) throw new Error(`Drive 다운로드 실패: ${res.status}`);
     return res.text();
   },
 
-  // 신규 파일 생성 (appDataFolder)
   async _createFile(content) {
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify({
@@ -181,13 +185,13 @@ const Drive = {
         body: form
       }
     );
+    if (!res.ok) throw new Error(`Drive 파일 생성 실패: ${res.status}`);
     const data = await res.json();
     return data.id;
   },
 
-  // 기존 파일 업데이트
   async _updateFile(fileId, content) {
-    await fetch(
+    const res = await fetch(
       `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
       {
         method: 'PATCH',
@@ -198,9 +202,9 @@ const Drive = {
         body: content
       }
     );
+    if (!res.ok) throw new Error(`Drive 업데이트 실패: ${res.status}`);
   },
 
-  // 마지막 동기화 시간 저장 및 UI 갱신
   _setSyncTime() {
     const t = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
     localStorage.setItem('smart_drive_last_sync', t);
@@ -208,7 +212,6 @@ const Drive = {
     if (typeof App !== 'undefined' && App.currentPage === 'settings') App.initSettings();
   },
 
-  // 홈 헤더 상태 배지 렌더링
   _renderStatus() {
     const el = document.getElementById('drive-status');
     if (!el) return;
@@ -224,7 +227,6 @@ const Drive = {
   }
 };
 
-// GIS 로드 완료 시 초기화
 if (typeof google !== 'undefined' && google.accounts) {
   Drive.init();
 } else {
